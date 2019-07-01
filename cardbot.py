@@ -12,8 +12,10 @@ REPLY_DB = 'replied_ids.txt'
 REGEX = '\[\[(.*)\]\]'
 
 REPLY_TEMPLATE = """- **{card_name}** | {craft} | {card_rarity} {card_type}
-    {stats} | Trait: {tribe_name} | Set: {card_set}
-    {skill_disc}
+
+  {stats} | Trait: {tribe_name} | Set: {card_set}
+
+  {skill_disc}
 """
 
 def load_card_db_conn():
@@ -34,21 +36,20 @@ def load_reply_db():
     return reply_db
 
 def decode_craft(clan, cur):
-    print(clan)
     sql = 'SELECT name FROM crafts WHERE id = ?'
-    return cur.execute(sql, [clan]).fetchone()
+    return cur.execute(sql, [clan]).fetchone()[0]
 
 def decode_card_set(card_set_id, cur):
     sql = 'SELECT name FROM card_sets WHERE id = ?'
-    return cur.execute(sql, [card_set_id]).fetchone()
+    return cur.execute(sql, [card_set_id]).fetchone()[0]
 
 def decode_rarity(rarity, cur):
     sql = 'SELECT name FROM card_rarity WHERE id = ?'
-    return cur.execute(sql, [rarity,]).fetchone()
+    return cur.execute(sql, [rarity,]).fetchone()[0]
 
 def decode_card_type(card_type, cur):
     sql = ' SELECT name from card_types WHERE id = ?'
-    return cur.execute(sql, [card_type]).fetchone()
+    return cur.execute(sql, [card_type]).fetchone()[0]
 
 def process_reply(_id, matches, card_db_conn, reply_db):
     with open(REPLY_DB, 'a') as f:
@@ -66,11 +67,17 @@ def process_reply(_id, matches, card_db_conn, reply_db):
                 results.append(dict(zip(col_names, r)))
         for r in results:
             # replace <br> with line break
-            skill_disc = re.sub('<[^<]+?>', '  \n', r['skill_disc'])
+            cleaned_skill_disc = re.sub('<[^<]+?>', '  \n  ', r['skill_disc'])
             # replace ascii line divider in Choose cards with horizontal rule
-            skill_disc = re.sub('[^-]?----------[^-]?', '\n*****', skill_disc)
-            r['skill_disc'] = skill_disc
-            r['stats'] = str(r['cost'])
+            cleaned_skill_disc = re.sub('[^-]?----------[^-]?', '\n  *****  ', cleaned_skill_disc)
+            if(r['evo_skill_disc'] and r['evo_skill_disc'] != r['skill_disc']):
+                cleaned_evo_disc = re.sub('<[^<]+?>', '  \n  ', r['evo_skill_disc'])
+                cleaned_evo_disc = re.sub('[^-]?----------[^-]?', '\n*****', cleaned_evo_disc)
+                cleaned_skill_disc += """
+
+  (Evolved) {}""".format(cleaned_evo_disc)
+            r['skill_disc'] = cleaned_skill_disc
+            r['stats'] = str(r['cost']) + 'pp'
             if(r['char_type'] == 1):
                 r['stats'] += ' ' + str(r['atk']) + '/' + str(r['life']) + \
                                 ' -> ' + str(r['evo_atk']) + '/' + str(r['evo_life'])
@@ -101,13 +108,10 @@ def main():
     subreddit = reddit.subreddit('ringon')
 
     card_db_conn = load_card_db_conn()
-    print("card_db connection established")
 
     reply_db = load_reply_db()
-    print("reply_db loaded")
 
     for submission in subreddit.stream.submissions():
-        print("processing submission...")
         process_submission(submission, card_db_conn, reply_db)
 
 if __name__ == "__main__":
