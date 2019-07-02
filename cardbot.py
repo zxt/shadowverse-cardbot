@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 import os
 import re
-from urllib.request import pathname2url
-import sqlite3
 
 import praw
+
+from db_connect import DBConnect
 
 CARD_DB = 'cards.db'
 REPLY_DB = 'replied_ids.txt'
@@ -17,15 +17,6 @@ REPLY_TEMPLATE = """- **{card_name}** | {craft} | {card_rarity} {card_type}
 
   {skill_disc}
 """
-
-def load_card_db_conn():
-    try:
-        dbURI = 'file:{}?mode=rw'.format(pathname2url(CARD_DB))
-        conn = sqlite3.connect(dbURI, uri=True)
-        return conn
-    except sqlite3.OperationalError as e:
-        print(e, ":", CARD_DB)
-        raise e
 
 def load_reply_db():
     if not os.path.isfile(REPLY_DB):
@@ -51,13 +42,12 @@ def decode_card_type(card_type, cur):
     sql = ' SELECT name from card_types WHERE id = ?'
     return cur.execute(sql, [card_type]).fetchone()[0]
 
-def process_reply(_id, matches, card_db_conn, reply_db):
+def process_reply(_id, matches, reply_db):
     with open(REPLY_DB, 'a') as f:
         f.write(_id + '\n')
     reply_db.append(_id)
-    #card_db_conn.set_trace_callback(print)
-    with card_db_conn:
-        cur = card_db_conn.cursor()
+    with DBConnect(CARD_DB) as conn:
+        cur = conn.cursor()
         sql = 'SELECT * FROM cards WHERE card_name = ? COLLATE NOCASE'
         results = []
         for match in matches:
@@ -87,26 +77,23 @@ def process_reply(_id, matches, card_db_conn, reply_db):
             r['card_set'] = decode_card_set(r['card_set_id'], cur)
             print(REPLY_TEMPLATE.format(**r))
 
-def process_comment(comment, card_db_conn, reply_db):
+def process_comment(comment, reply_db):
     if(comment.id not in reply_db):
         matches = re.findall(REGEX, comment.body)
         if(matches):
-            process_reply(comment.id, matches, card_db_conn, reply_db)
+            process_reply(comment.id, matches, reply_db)
 
-def process_submission(submission, card_db_conn, reply_db):
+def process_submission(submission, reply_db):
     if(submission.id not in reply_db):
         matches = re.findall(REGEX, submission.selftext)
         if(matches):
-            process_reply(submission.id, matches, card_db_conn, reply_db)
-    #submission.comments.replace_more(limit=None)
-    #for comment in submission.comments.list():
-    #    process_comment(comment, card_db_conn, reply_db)
+            process_reply(submission.id, matches, reply_db)
 
-def process_post(post, card_db_conn, reply_db):
+def process_post(post, reply_db):
     if(isinstance(post, praw.models.Submission)):
-        process_submission(post, card_db_conn, reply_db)
+        process_submission(post, reply_db)
     elif(isinstance(post, praw.models.Comment)):
-        process_comment(post, card_db_conn, reply_db)
+        process_comment(post, reply_db)
 
 def submissions_and_comments(subreddit, **kwargs):
     results = []
@@ -120,14 +107,12 @@ def main():
 
     subreddit = reddit.subreddit('ringon')
 
-    card_db_conn = load_card_db_conn()
-
     reply_db = load_reply_db()
 
     stream = praw.models.util.stream_generator(lambda **kwargs: submissions_and_comments(subreddit, **kwargs))
 
     for post in stream:
-        process_post(post, card_db_conn, reply_db)
+        process_post(post, reply_db)
 
 if __name__ == "__main__":
     main()
