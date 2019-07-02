@@ -52,9 +52,9 @@ def decode_card_type(card_type, cur):
     return cur.execute(sql, [card_type]).fetchone()[0]
 
 def process_reply(_id, matches, card_db_conn, reply_db):
-    #with open(REPLY_DB, 'a') as f:
-    #    f.write(_id + '\n')
-    #reply_db.append(_id)
+    with open(REPLY_DB, 'a') as f:
+        f.write(_id + '\n')
+    reply_db.append(_id)
     #card_db_conn.set_trace_callback(print)
     with card_db_conn:
         cur = card_db_conn.cursor()
@@ -94,16 +94,19 @@ def process_comment(comment, card_db_conn, reply_db):
             process_reply(comment.id, matches, card_db_conn, reply_db)
 
 def process_submission(submission, card_db_conn, reply_db):
-    if(isinstance(submission, praw.models.Submission)):
-        if(submission.id not in reply_db):
-            matches = re.findall(REGEX, submission.selftext)
-            if(matches):
-                process_reply(submission.id, matches, card_db_conn, reply_db)
-        submission.comments.replace_more(limit=None)
-        for comment in submission.comments.list():
-            process_comment(comment, card_db_conn, reply_db)
-    elif(isinstance(submission, praw.models.Comment)):
-        process_comment(submission, card_db_conn, reply_db)
+    if(submission.id not in reply_db):
+        matches = re.findall(REGEX, submission.selftext)
+        if(matches):
+            process_reply(submission.id, matches, card_db_conn, reply_db)
+    #submission.comments.replace_more(limit=None)
+    #for comment in submission.comments.list():
+    #    process_comment(comment, card_db_conn, reply_db)
+
+def process_post(post, card_db_conn, reply_db):
+    if(isinstance(post, praw.models.Submission)):
+        process_submission(post, card_db_conn, reply_db)
+    elif(isinstance(post, praw.models.Comment)):
+        process_comment(post, card_db_conn, reply_db)
 
 def submissions_and_comments(subreddit, **kwargs):
     results = []
@@ -124,7 +127,7 @@ def main():
     stream = praw.models.util.stream_generator(lambda **kwargs: submissions_and_comments(subreddit, **kwargs))
 
     for post in stream:
-        process_submission(post, card_db_conn, reply_db)
+        process_post(post, card_db_conn, reply_db)
 
 if __name__ == "__main__":
     main()
