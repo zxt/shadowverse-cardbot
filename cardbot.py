@@ -11,11 +11,15 @@ SEEN_DB = 'seen_ids.txt'
 
 REGEX = '\[\[(.*)\]\]'
 
-REPLY_TEMPLATE = """- **{card_name}** | {craft} | {card_rarity} {card_type}
-
-  {stats} | Trait: {tribe_name} | Set: {card_set}
-
+REPLY_TEMPLATE = """\
+- **{card_name}** | {craft} | {card_rarity} {card_type}  
+  {stats} | Trait: {tribe_name} | Set: {card_set}  
   {skill_disc}
+"""
+
+EVO_SKILL_DISC_TEMPLATE_FRAG ="""\
+  
+  (Evolved) {}
 """
 
 def load_seen_db():
@@ -47,10 +51,8 @@ def process_reply(_id, matches):
             cleaned_skill_disc = re.sub('[^-]?----------[^-]?', '\n  *****  ', cleaned_skill_disc)
             if(r['evo_skill_disc'] and r['evo_skill_disc'] != r['skill_disc']):
                 cleaned_evo_disc = re.sub('<[^<]+?>', '  \n  ', r['evo_skill_disc'])
-                cleaned_evo_disc = re.sub('[^-]?----------[^-]?', '\n*****', cleaned_evo_disc)
-                cleaned_skill_disc += """
-
-  (Evolved) {}""".format(cleaned_evo_disc)
+                cleaned_evo_disc = re.sub('[^-]?----------[^-]?', '\n  *****  ', cleaned_evo_disc)
+                cleaned_skill_disc += EVO_SKILL_DISC_TEMPLATE_FRAG.format(cleaned_evo_disc)
 
             r['skill_disc'] = cleaned_skill_disc
             r['stats'] = str(r['cost']) + 'pp'
