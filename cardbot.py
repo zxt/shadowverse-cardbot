@@ -12,7 +12,7 @@ SEEN_DB = 'seen_ids.txt'
 REGEX = '\[\[(.*)\]\]'
 
 REPLY_TEMPLATE = """\
-- **{card_name}** | {craft} | {card_rarity} {card_type}  
+- **[{card_name}](https://shadowverse-portal.com/card/{card_id})** | {craft} | {card_rarity} {card_type}  
   {stats} | Trait: {tribe_name} | Set: {card_set}  
   {skill_disc}
 """
