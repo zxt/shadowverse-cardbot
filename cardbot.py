@@ -7,7 +7,7 @@ import praw
 from db_connect import DBConnect
 
 CARD_DB = 'cards.db'
-REPLY_DB = 'replied_ids.txt'
+SEEN_DB = 'seen_ids.txt'
 
 REGEX = '\[\[(.*)\]\]'
 
@@ -18,22 +18,19 @@ REPLY_TEMPLATE = """- **{card_name}** | {craft} | {card_rarity} {card_type}
   {skill_disc}
 """
 
-def load_reply_db():
-    if not os.path.isfile(REPLY_DB):
-        reply_db = []
+def load_seen_db():
+    if not os.path.isfile(SEEN_DB):
+        seen_db = set()
     else:
-        with open(REPLY_DB, 'r') as f:
-            reply_db = f.read().splitlines()
-    return reply_db
+        with open(SEEN_DB, 'r') as f:
+            seen_db = f.read().splitlines()
+    return seen_db
 
 def lookup_name_from_id(_id, table, cur):
     sql = 'SELECT name FROM {} WHERE id = ?'.format(table)
     return cur.execute(sql, [_id]).fetchone()[0]
 
-def process_reply(_id, matches, reply_db):
-    with open(REPLY_DB, 'a') as f:
-        f.write(_id + '\n')
-    reply_db.append(_id)
+def process_reply(_id, matches):
     with DBConnect(CARD_DB) as conn:
         cur = conn.cursor()
         sql = 'SELECT * FROM cards WHERE card_name = ? COLLATE NOCASE'
@@ -68,23 +65,21 @@ def process_reply(_id, matches, reply_db):
 
             print(REPLY_TEMPLATE.format(**r))
 
-def process_comment(comment, reply_db):
-    if(comment.id not in reply_db):
-        matches = re.findall(REGEX, comment.body)
-        if(matches):
-            process_reply(comment.id, matches, reply_db)
+def process_comment(comment):
+    matches = re.findall(REGEX, comment.body)
+    if(matches):
+        process_reply(comment.id, matches)
 
-def process_submission(submission, reply_db):
-    if(submission.id not in reply_db):
-        matches = re.findall(REGEX, submission.selftext)
-        if(matches):
-            process_reply(submission.id, matches, reply_db)
+def process_submission(submission):
+    matches = re.findall(REGEX, submission.selftext)
+    if(matches):
+        process_reply(submission.id, matches)
 
-def process_post(post, reply_db):
-    if(isinstance(post, praw.models.Submission)):
-        process_submission(post, reply_db)
-    elif(isinstance(post, praw.models.Comment)):
-        process_comment(post, reply_db)
+def process_post(post):
+        if(isinstance(post, praw.models.Submission)):
+            process_submission(post)
+        elif(isinstance(post, praw.models.Comment)):
+            process_comment(post)
 
 def submissions_and_comments(subreddit, **kwargs):
     results = []
@@ -98,12 +93,16 @@ def main():
 
     subreddit = reddit.subreddit('ringon')
 
-    reply_db = load_reply_db()
+    seen_db = load_seen_db()
 
     stream = praw.models.util.stream_generator(lambda **kwargs: submissions_and_comments(subreddit, **kwargs))
 
-    for post in stream:
-        process_post(post, reply_db)
+    with open(SEEN_DB, 'a') as f:
+        for post in stream:
+            if(post.id not in seen_db):
+                process_post(post)
+                f.write(post.id + '\n')
+                seen_db.add(post.id)
 
 if __name__ == "__main__":
     main()
