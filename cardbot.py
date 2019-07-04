@@ -34,6 +34,13 @@ def lookup_name_from_id(_id, table, cur):
     sql = 'SELECT name FROM {} WHERE id = ?'.format(table)
     return cur.execute(sql, [_id]).fetchone()[0]
 
+def clean_disc_string(string):
+    # replace <br> with line break
+    cleaned_string = re.sub('<[^<]+?>', '  \n  ', string)
+    # replace ascii line divider in Choose cards with horizontal rule
+    cleaned_string = re.sub('[^-]?----------[^-]?', '\n  *****  ', cleaned_string)
+    return cleaned_string
+
 def process_reply(_id, matches):
     with DBConnect(CARD_DB) as conn:
         cur = conn.cursor()
@@ -45,13 +52,9 @@ def process_reply(_id, matches):
             for r in rows:
                 results.append(dict(zip(col_names, r)))
         for r in results:
-            # replace <br> with line break
-            cleaned_skill_disc = re.sub('<[^<]+?>', '  \n  ', r['skill_disc'])
-            # replace ascii line divider in Choose cards with horizontal rule
-            cleaned_skill_disc = re.sub('[^-]?----------[^-]?', '\n  *****  ', cleaned_skill_disc)
+            cleaned_skill_disc = clean_disc_string(r['skill_disc'])
             if(r['evo_skill_disc'] and r['evo_skill_disc'] != r['skill_disc']):
-                cleaned_evo_disc = re.sub('<[^<]+?>', '  \n  ', r['evo_skill_disc'])
-                cleaned_evo_disc = re.sub('[^-]?----------[^-]?', '\n  *****  ', cleaned_evo_disc)
+                cleaned_evo_disc = clean_disc_string(r['evo_skill_disc'])
                 cleaned_skill_disc += EVO_SKILL_DISC_TEMPLATE_FRAG.format(cleaned_evo_disc)
 
             r['skill_disc'] = cleaned_skill_disc
