@@ -11,7 +11,7 @@ SEEN_DB = 'seen_ids.txt'
 
 REGEX = '\[\[(.*)\]\]'
 
-REPLY_TEMPLATE = """\
+CARD_TEMPLATE = """\
 - **[{card_name}](https://shadowverse-portal.com/card/{card_id})** | {craft} | {card_rarity} {card_type}  
   {stats} | Trait: {tribe_name} | Set: {card_set}  
   {skill_disc}
@@ -32,7 +32,7 @@ def load_seen_db():
 
 def lookup_name_from_id(_id, table, cur):
     sql = 'SELECT name FROM {} WHERE id = ?'.format(table)
-    return cur.execute(sql, [_id]).fetchone()[0]
+    return cur.execute(sql, [_id]).fetchone()['name']
 
 def clean_disc_string(string):
     # replace <br> with line break
@@ -48,27 +48,32 @@ def process_reply(_id, matches):
         results = []
         for match in matches:
             rows = cur.execute(sql, [match]).fetchall()
-            col_names = list(map(lambda x: x[0], cur.description))
             for r in rows:
-                results.append(dict(zip(col_names, r)))
+                results.append(r)
+
+        reply_message = ""
         for r in results:
-            cleaned_skill_disc = clean_disc_string(r['skill_disc'])
-            if(r['evo_skill_disc'] and r['evo_skill_disc'] != r['skill_disc']):
-                cleaned_evo_disc = clean_disc_string(r['evo_skill_disc'])
-                cleaned_skill_disc += EVO_SKILL_DISC_TEMPLATE_FRAG.format(cleaned_evo_disc)
+            # skip over card results that are just alt art versions
+            if(r['card_id'] == r['base_card_id']):
+                cleaned_skill_disc = clean_disc_string(r['skill_disc'])
+                if(r['evo_skill_disc'] and r['evo_skill_disc'] != r['skill_disc']):
+                    cleaned_evo_disc = clean_disc_string(r['evo_skill_disc'])
+                    cleaned_skill_disc += EVO_SKILL_DISC_TEMPLATE_FRAG.format(cleaned_evo_disc)
 
-            r['skill_disc'] = cleaned_skill_disc
-            r['stats'] = str(r['cost']) + 'pp'
-            if(r['char_type'] == 1):
-                r['stats'] += ' ' + str(r['atk']) + '/' + str(r['life']) + \
-                                ' -> ' + str(r['evo_atk']) + '/' + str(r['evo_life'])
+                r['skill_disc'] = cleaned_skill_disc
+                r['stats'] = str(r['cost']) + 'pp'
+                if(r['char_type'] == 1):
+                    r['stats'] += ' ' + str(r['atk']) + '/' + str(r['life']) + \
+                                    ' -> ' + str(r['evo_atk']) + '/' + str(r['evo_life'])
 
-            r['craft'] = lookup_name_from_id(r['clan'], 'crafts', cur)
-            r['card_rarity'] = lookup_name_from_id(r['rarity'], 'card_rarity', cur)
-            r['card_type'] = lookup_name_from_id(r['char_type'], 'card_types', cur)
-            r['card_set'] = lookup_name_from_id(r['card_set_id'], 'card_sets', cur)
+                r['craft'] = lookup_name_from_id(r['clan'], 'crafts', cur)
+                r['card_rarity'] = lookup_name_from_id(r['rarity'], 'card_rarity', cur)
+                r['card_type'] = lookup_name_from_id(r['char_type'], 'card_types', cur)
+                r['card_set'] = lookup_name_from_id(r['card_set_id'], 'card_sets', cur)
 
-            print(REPLY_TEMPLATE.format(**r))
+                reply_message += CARD_TEMPLATE.format(**r)
+
+        print(reply_message)
 
 def process_comment(comment):
     matches = re.findall(REGEX, comment.body)

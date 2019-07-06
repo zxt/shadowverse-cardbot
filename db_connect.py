@@ -11,6 +11,7 @@ class DBConnect:
         try:
             dbURI = 'file:{}?mode=rw'.format(pathname2url(self.name))
             self.db_conn = sqlite3.connect(dbURI, uri=True)
+            self.db_conn.row_factory = lambda c, r: dict([(col[0], r[idx]) for idx, col in enumerate(c.description)])
             return self.db_conn
         except sqlite3.OperationalError as e:
             print(e, ":", CARD_DB)
