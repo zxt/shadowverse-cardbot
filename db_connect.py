@@ -14,7 +14,7 @@ class DBConnect:
             self.db_conn.row_factory = lambda c, r: dict([(col[0], r[idx]) for idx, col in enumerate(c.description)])
             return self.db_conn
         except sqlite3.OperationalError as e:
-            print(e, ":", CARD_DB)
+            print(e)
             raise e
     
     def __exit__(self, exc_type, exc_val, exc_tb):
