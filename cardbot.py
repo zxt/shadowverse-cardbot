@@ -24,8 +24,9 @@ EVO_SKILL_DISC_TEMPLATE_FRAG ="""\
 
 BOT_SIGNATURE_TEMPLATE = """\
   
+  ^(---)
   ^(ding dong! I am a bot. Call me with [[cardname]].  )
-  ^(Issues/feedback should be posted on r/ringon or [PM'd to my maintainer](https://www.reddit.com/message/compose/?to=Zuiran))
+  ^(Issues/feedback should be posted on r/ringon or) [^PM'd ^to ^my ^maintainer](https://www.reddit.com/message/compose/?to=Zuiran))
 """
 
 def load_seen_db():
@@ -58,40 +59,44 @@ def process_reply(_id, matches):
                 results.append(row)
 
         reply_message = ""
-        for r in results:
-            cleaned_skill_disc = clean_disc_string(r['skill_disc'])
-            if(r['evo_skill_disc'] and r['evo_skill_disc'] != r['skill_disc']):
-                cleaned_evo_disc = clean_disc_string(r['evo_skill_disc'])
-                cleaned_skill_disc += EVO_SKILL_DISC_TEMPLATE_FRAG.format(cleaned_evo_disc)
+        if(results != []):
+            for r in results:
+                cleaned_skill_disc = clean_disc_string(r['skill_disc'])
+                if(r['evo_skill_disc'] and r['evo_skill_disc'] != r['skill_disc']):
+                    cleaned_evo_disc = clean_disc_string(r['evo_skill_disc'])
+                    cleaned_skill_disc += EVO_SKILL_DISC_TEMPLATE_FRAG.format(cleaned_evo_disc)
 
-            r['skill_disc'] = cleaned_skill_disc
-            r['stats'] = str(r['cost']) + 'pp'
-            if(r['char_type'] == 1):
-                r['stats'] += ' ' + str(r['atk']) + '/' + str(r['life']) + \
-                                ' -> ' + str(r['evo_atk']) + '/' + str(r['evo_life'])
+                r['skill_disc'] = cleaned_skill_disc
+                r['stats'] = str(r['cost']) + 'pp'
+                if(r['char_type'] == 1):
+                    r['stats'] += ' ' + str(r['atk']) + '/' + str(r['life']) + \
+                                    ' -> ' + str(r['evo_atk']) + '/' + str(r['evo_life'])
 
-            r['craft'] = lookup_name_from_id(r['clan'], 'crafts', cur)
-            r['card_rarity'] = lookup_name_from_id(r['rarity'], 'card_rarity', cur)
-            r['card_type'] = lookup_name_from_id(r['char_type'], 'card_types', cur)
-            r['card_set'] = lookup_name_from_id(r['card_set_id'], 'card_sets', cur)
+                r['craft'] = lookup_name_from_id(r['clan'], 'crafts', cur)
+                r['card_rarity'] = lookup_name_from_id(r['rarity'], 'card_rarity', cur)
+                r['card_type'] = lookup_name_from_id(r['char_type'], 'card_types', cur)
+                r['card_set'] = lookup_name_from_id(r['card_set_id'], 'card_sets', cur)
 
-            reply_message += CARD_TEMPLATE.format(**r)
+                reply_message += CARD_TEMPLATE.format(**r)
 
-        reply_message += BOT_SIGNATURE_TEMPLATE
-        print(reply_message)
+            reply_message += BOT_SIGNATURE_TEMPLATE
+            print(reply_message)
+
         return reply_message
 
 def process_comment(comment):
     matches = re.findall(REGEX, comment.body)
     if(matches):
         msg = process_reply(comment.id, matches)
-        comment.reply(msg)
+        if(msg):
+            comment.reply(msg)
 
 def process_submission(submission):
     matches = re.findall(REGEX, submission.selftext)
     if(matches):
         msg = process_reply(submission.id, matches)
-        submission.reply(msg)
+        if(msg):
+            submission.reply(msg)
 
 def process_post(post):
         if(isinstance(post, praw.models.Submission)):
