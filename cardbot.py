@@ -26,7 +26,7 @@ BOT_SIGNATURE_TEMPLATE = """\
   
   ^(---)  
   ^(ding dong! I am a bot. Call me with [[cardname]].  )
-  ^(Issues/feedback should be posted on r/ringon or) [^PM'd ^to ^my ^maintainer](https://www.reddit.com/message/compose/?to=Zuiran)
+  ^(Issues/feedback are welcome by posting on r/ringon or by) [^PM ^to ^my ^maintainer](https://www.reddit.com/message/compose/?to=Zuiran)
 """
 
 def load_seen_db():
