@@ -22,6 +22,12 @@ EVO_SKILL_DISC_TEMPLATE_FRAG ="""\
   (Evolved) {}
 """
 
+BOT_SIGNATURE_TEMPLATE = """\
+  
+  ^(ding dong! I am a bot. Call me with [[cardname]].  )
+  ^(Issues/feedback should be posted on r/ringon or [PM'd to my maintainer](https://www.reddit.com/message/compose/?to=Zuiran))
+"""
+
 def load_seen_db():
     if not os.path.isfile(SEEN_DB):
         seen_db = set()
@@ -71,6 +77,7 @@ def process_reply(_id, matches):
 
             reply_message += CARD_TEMPLATE.format(**r)
 
+        reply_message += BOT_SIGNATURE_TEMPLATE
         print(reply_message)
         return reply_message
 
