@@ -106,7 +106,8 @@ def main():
 
     seen_db = load_seen_db()
 
-    stream = praw.models.util.stream_generator(lambda **kwargs: submissions_and_comments(subreddit, **kwargs))
+    stream = praw.models.util.stream_generator(lambda **kwargs: submissions_and_comments(subreddit, **kwargs),
+                                                skip_existing=True)
 
     with open(SEEN_DB, 'a') as f:
         for post in stream:
