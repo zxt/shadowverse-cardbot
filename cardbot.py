@@ -114,6 +114,8 @@ def main():
             if(post.id not in seen_db):
                 process_post(post)
                 f.write(post.id + '\n')
+                f.flush()
+                os.fsync(f)
                 seen_db.add(post.id)
 
 if __name__ == "__main__":
