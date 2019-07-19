@@ -12,7 +12,7 @@ SEEN_DB = 'seen_ids.txt'
 REGEX = '\[\[([^]]*)\]\]'
 
 CARD_TEMPLATE = """\
-- **[{card_name}](https://shadowverse-portal.com/card/{card_id})** | {craft} | {card_rarity} {card_type}  
+- **[{card_name}](https://shadowverse-portal.com/card/{card_id})**^[B](https://shadowverse-portal.com/image/card/phase2/common/C/C_{card_id}.png)|[E](https://shadowverse-portal.com/image/card/phase2/common/E/E_{card_id}.png) | {craft} | {card_rarity} {card_type}  
   {stats} | Trait: {tribe_name} | Set: {card_set}  
   {skill_disc}
 """
