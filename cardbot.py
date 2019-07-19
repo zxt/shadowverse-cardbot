@@ -9,7 +9,9 @@ from db_connect import DBConnect
 CARD_DB = 'cards.db'
 SEEN_DB = 'seen_ids.txt'
 
-REGEX = '\[\[([^]]*)\]\]'
+CARD_INFO_REGEX = '\[\[([^]]*)\]\]'
+
+DECKCODE_REGEX = '\!(\w{4}(?!\S))'
 
 BASE_ART_LINK = '^[B](https://shadowverse-portal.com/image/card/phase2/common/C/C_{}.png)'
 EVO_ART_LINK = '|[E](https://shadowverse-portal.com/image/card/phase2/common/E/E_{}.png)'
@@ -97,14 +99,18 @@ def process_reply(matches):
         return reply_message
 
 def process_comment(comment):
-    matches = re.findall(REGEX, comment.body)
+    matches = re.findall(CARD_INFO_REGEX, comment.body)
     if(matches):
         msg = process_reply(matches)
         if(msg):
             comment.reply(msg)
+    match = re.search(DECKCODE_REGEX, comment.body)
+    print('comment:', comment.body)
+    if(match):
+        print(match.group(1))
 
 def process_submission(submission):
-    matches = re.findall(REGEX, submission.selftext)
+    matches = re.findall(CARD_INFO_REGEX, submission.selftext)
     if(matches):
         msg = process_reply(matches)
         if(msg):
