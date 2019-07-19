@@ -57,6 +57,11 @@ def process_reply(_id, matches):
             row = cur.execute(sql, [match]).fetchone()
             if(row is not None):
                 results.append(row)
+            else: # try to search by card ID
+                sql2 = 'SELECT * FROM cards WHERE card_id = ?'
+                row = cur.execute(sql2, [match]).fetchone()
+                if(row is not None):
+                    results.append(row)
 
         reply_message = ""
         if(results != []):
