@@ -11,8 +11,11 @@ SEEN_DB = 'seen_ids.txt'
 
 REGEX = '\[\[([^]]*)\]\]'
 
+BASE_ART_LINK = '^[B](https://shadowverse-portal.com/image/card/phase2/common/C/C_{}.png)'
+EVO_ART_LINK = '|[E](https://shadowverse-portal.com/image/card/phase2/common/E/E_{}.png)'
+
 CARD_TEMPLATE = """\
-- **[{card_name}](https://shadowverse-portal.com/card/{card_id})**^[B](https://shadowverse-portal.com/image/card/phase2/common/C/C_{card_id}.png)|[E](https://shadowverse-portal.com/image/card/phase2/common/E/E_{card_id}.png) | {craft} | {card_rarity} {card_type}  
+- **[{card_name}](https://shadowverse-portal.com/card/{card_id})**{art_links} | {craft} | {card_rarity} {card_type}  
   {stats} | Trait: {tribe_name} | Set: {card_set}  
   {skill_disc}
 """
@@ -53,7 +56,7 @@ def process_reply(_id, matches):
         cur = conn.cursor()
         sql = 'SELECT * FROM cards WHERE card_name = ? COLLATE NOCASE'
         results = []
-        for match in matches:
+        for match in set(matches):
             row = cur.execute(sql, [match]).fetchone()
             if(row is not None):
                 results.append(row)
@@ -64,7 +67,7 @@ def process_reply(_id, matches):
                     results.append(row)
 
         reply_message = ""
-        if(results != []):
+        if results:
             for r in results:
                 cleaned_skill_disc = clean_disc_string(r['skill_disc'])
                 if(r['evo_skill_disc'] and r['evo_skill_disc'] != r['skill_disc']):
@@ -81,6 +84,10 @@ def process_reply(_id, matches):
                 r['card_rarity'] = lookup_name_from_id(r['rarity'], 'card_rarity', cur)
                 r['card_type'] = lookup_name_from_id(r['char_type'], 'card_types', cur)
                 r['card_set'] = lookup_name_from_id(r['card_set_id'], 'card_sets', cur)
+
+                r['art_links'] = BASE_ART_LINK.format(r['card_id'])
+                if r['card_type'] == 'Follower':
+                    r['art_links'] += EVO_ART_LINK.format(r['card_id'])
 
                 reply_message += CARD_TEMPLATE.format(**r)
 
