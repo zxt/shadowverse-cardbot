@@ -7,12 +7,14 @@ import praw
 from db_connect import DBConnect
 import decklist
 
+IGNORED_USERS = ['sv-dingdong-bot']
+
 CARD_DB = 'cards.db'
 SEEN_DB = 'seen_ids.txt'
 
 CARD_INFO_REGEX = '\[\[([^]]*)\]\]'
 
-DECKCODE_REGEX = '\!(\w{4}(?!\S))'
+DECKCODE_REGEX = '\!(\w{4}(?!\S))|\!(pd\w{4}(?!\S))'
 
 BASE_ART_LINK = '^[B](https://shadowverse-portal.com/image/card/phase2/common/C/C_{}.png)'
 EVO_ART_LINK = '|[E](https://shadowverse-portal.com/image/card/phase2/common/E/E_{}.png)'
@@ -31,7 +33,7 @@ EVO_SKILL_DISC_TEMPLATE_FRAG ="""\
 BOT_SIGNATURE_TEMPLATE = """\
   
   ^(---)  
-  ^(ding dong! I am a bot. Call me with [[cardname]].  )
+  ^(ding dong! I am a bot. Call me with [[cardname]] or !deckcode.)  
   ^(Issues/feedback are welcome by posting on r/ringon or by) [^PM ^to ^my ^maintainer](https://www.reddit.com/message/compose/?to=Zuiran)
 """
 
@@ -118,8 +120,9 @@ def process_comment(comment):
         process_reply(comment, msg)
 
     match = re.search(DECKCODE_REGEX, comment.body)
-    if match:
-        msg = decklist.process_deckcodes(match.group(1))
+    deckcode = match.group(1) if match.group(1) else match.group(2)
+    if deckcode:
+        msg = decklist.process_deckcodes(deckcode)
         process_reply(comment, msg)
 
 def process_submission(submission):
@@ -129,8 +132,9 @@ def process_submission(submission):
         process_reply(submission, msg)
 
     match = re.search(DECKCODE_REGEX, comment.body)
-    if  match:
-        msg = decklist.process_deckcodes(match.group(1))
+    deckcode = match.group(1) if match.group(1) else match.group(2)
+    if  deckcode:
+        msg = decklist.process_deckcodes(deckcode)
         process_reply(submission, msg)
 
 def process_post(post):
@@ -158,7 +162,7 @@ def main():
 
     with open(SEEN_DB, 'a') as f:
         for post in stream:
-            if(post.id not in seen_db):
+            if post.id not in seen_db and post.author.name not in IGNORED_USERS:
                 process_post(post)
                 f.write(post.id + '\n')
                 f.flush()
