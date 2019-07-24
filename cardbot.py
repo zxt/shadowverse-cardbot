@@ -51,7 +51,7 @@ def clean_disc_string(string):
     cleaned_string = re.sub('[^-]?----------[^-]?', '\n  *****  ', cleaned_string)
     return cleaned_string
 
-def process_reply(_id, matches):
+def process_reply(matches):
     with DBConnect(CARD_DB) as conn:
         cur = conn.cursor()
         sql = 'SELECT * FROM cards WHERE card_name = ? COLLATE NOCASE'
@@ -99,14 +99,14 @@ def process_reply(_id, matches):
 def process_comment(comment):
     matches = re.findall(REGEX, comment.body)
     if(matches):
-        msg = process_reply(comment.id, matches)
+        msg = process_reply(matches)
         if(msg):
             comment.reply(msg)
 
 def process_submission(submission):
     matches = re.findall(REGEX, submission.selftext)
     if(matches):
-        msg = process_reply(submission.id, matches)
+        msg = process_reply(matches)
         if(msg):
             submission.reply(msg)
 
