@@ -5,6 +5,7 @@ import re
 import praw
 
 from db_connect import DBConnect
+import decklist
 
 CARD_DB = 'cards.db'
 SEEN_DB = 'seen_ids.txt'
@@ -53,12 +54,12 @@ def clean_disc_string(string):
     cleaned_string = re.sub('[^-]?----------[^-]?', '\n  *****  ', cleaned_string)
     return cleaned_string
 
-def process_reply(matches):
+def process_card_lookup(matches):
     with DBConnect(CARD_DB) as conn:
         cur = conn.cursor()
         sql = 'SELECT * FROM cards WHERE card_name = ? COLLATE NOCASE'
         results = []
-        for match in set(matches):
+        for match in matches:
             row = cur.execute(sql, [match]).fetchone()
             if(row is not None):
                 results.append(row)
@@ -70,7 +71,12 @@ def process_reply(matches):
 
         reply_message = ""
         if results:
+            card_ids = []
             for r in results:
+                # don't make dupe replies to same card
+                if r['card_id'] in card_ids:
+                    continue
+                card_ids.append(r['card_id'])
                 cleaned_skill_disc = clean_disc_string(r['skill_disc'])
                 if(r['evo_skill_disc'] and r['evo_skill_disc'] != r['skill_disc']):
                     cleaned_evo_disc = clean_disc_string(r['evo_skill_disc'])
@@ -93,28 +99,39 @@ def process_reply(matches):
 
                 reply_message += CARD_TEMPLATE.format(**r)
 
-            reply_message += BOT_SIGNATURE_TEMPLATE
-            print(reply_message)
-
         return reply_message
+
+
+def process_reply(post, msg):
+    if msg:
+        reply_msg = ''.join([msg, BOT_SIGNATURE_TEMPLATE])
+        print('-----')
+        print('post id:', post.id)
+        print(reply_msg)
+        print('-----')
+        post.reply(reply_msg)
 
 def process_comment(comment):
     matches = re.findall(CARD_INFO_REGEX, comment.body)
-    if(matches):
-        msg = process_reply(matches)
-        if(msg):
-            comment.reply(msg)
+    if matches :
+        msg = process_card_lookup(matches)
+        process_reply(comment, msg)
+
     match = re.search(DECKCODE_REGEX, comment.body)
-    print('comment:', comment.body)
-    if(match):
-        print(match.group(1))
+    if match:
+        msg = decklist.process_deckcodes(match.group(1))
+        process_reply(comment, msg)
 
 def process_submission(submission):
     matches = re.findall(CARD_INFO_REGEX, submission.selftext)
-    if(matches):
-        msg = process_reply(matches)
-        if(msg):
-            submission.reply(msg)
+    if matches:
+        msg = process_card_lookup(matches)
+        process_reply(submission, msg)
+
+    match = re.search(DECKCODE_REGEX, comment.body)
+    if  match:
+        msg = decklist.process_deckcodes(match.group(1))
+        process_reply(submission, msg)
 
 def process_post(post):
         if(isinstance(post, praw.models.Submission)):
