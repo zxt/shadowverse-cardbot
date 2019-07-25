@@ -14,7 +14,7 @@ SEEN_DB = 'seen_ids.txt'
 
 CARD_INFO_REGEX = '\[\[([^]]*)\]\]'
 
-DECKCODE_REGEX = '\!(\w{4}(?!\S))|\!(pd\w{4}(?!\S))'
+DECKCODE_REGEX = '\!(\w{4}(?!\S)|pd\w{4}(?!\S))'
 
 BASE_ART_LINK = '^[B](https://shadowverse-portal.com/image/card/phase2/common/C/C_{}.png)'
 EVO_ART_LINK = '|[E](https://shadowverse-portal.com/image/card/phase2/common/E/E_{}.png)'
@@ -120,7 +120,7 @@ def process_comment(comment):
         process_reply(comment, msg)
 
     match = re.search(DECKCODE_REGEX, comment.body)
-    deckcode = match.group(1) if match.group(1) else match.group(2)
+    deckcode = match.group(1)
     if deckcode:
         msg = decklist.process_deckcodes(deckcode)
         process_reply(comment, msg)
@@ -132,7 +132,7 @@ def process_submission(submission):
         process_reply(submission, msg)
 
     match = re.search(DECKCODE_REGEX, comment.body)
-    deckcode = match.group(1) if match.group(1) else match.group(2)
+    deckcode = match.group(1)
     if  deckcode:
         msg = decklist.process_deckcodes(deckcode)
         process_reply(submission, msg)
