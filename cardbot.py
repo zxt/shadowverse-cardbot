@@ -4,109 +4,22 @@ import re
 
 import praw
 
-from db_connect import DBConnect
+import settings
+import templates
+import card_lookup
 import decklist
 
-IGNORED_USERS = ['sv-dingdong-bot']
-
-CARD_DB = 'cards.db'
-SEEN_DB = 'seen_ids.txt'
-
-CARD_INFO_REGEX = '\[\[([^]]*)\]\]'
-
-DECKCODE_REGEX = '\!(\w{4}(?!\S)|pd\w{4}(?!\S))'
-
-BASE_ART_LINK = '^[B](https://shadowverse-portal.com/image/card/phase2/common/C/C_{}.png)'
-EVO_ART_LINK = '|[E](https://shadowverse-portal.com/image/card/phase2/common/E/E_{}.png)'
-
-CARD_TEMPLATE = """\
-- **[{card_name}](https://shadowverse-portal.com/card/{card_id})**{art_links} | {craft} | {card_rarity} {card_type}  
-  {stats} | Trait: {tribe_name} | Set: {card_set}  
-  {skill_disc}
-"""
-
-EVO_SKILL_DISC_TEMPLATE_FRAG ="""\
-  
-  (Evolved) {}
-"""
-
-BOT_SIGNATURE_TEMPLATE = """\
-  
-  ^(---)  
-  ^(ding dong! I am a bot. Call me with [[cardname]] or !deckcode.)  
-  ^(Issues/feedback are welcome by posting on r/ringon or by) [^PM ^to ^my ^maintainer](https://www.reddit.com/message/compose/?to=Zuiran)
-"""
-
 def load_seen_db():
-    if not os.path.isfile(SEEN_DB):
+    if not os.path.isfile(settings.SEEN_DB):
         seen_db = set()
     else:
-        with open(SEEN_DB, 'r') as f:
+        with open(settings.SEEN_DB, 'r') as f:
             seen_db = set(f.read().splitlines())
     return seen_db
 
-def lookup_name_from_id(_id, table, cur):
-    sql = 'SELECT name FROM {} WHERE id = ?'.format(table)
-    return cur.execute(sql, [_id]).fetchone()['name']
-
-def clean_disc_string(string):
-    # replace <br> with line break
-    cleaned_string = re.sub('<[^<]+?>', '  \n  ', string)
-    # replace ascii line divider in Choose cards with horizontal rule
-    cleaned_string = re.sub('[^-]?----------[^-]?', '\n  *****  ', cleaned_string)
-    return cleaned_string
-
-def process_card_lookup(matches):
-    with DBConnect(CARD_DB) as conn:
-        cur = conn.cursor()
-        sql = 'SELECT * FROM cards WHERE card_name = ? COLLATE NOCASE'
-        results = []
-        for match in matches:
-            row = cur.execute(sql, [match]).fetchone()
-            if(row is not None):
-                results.append(row)
-            else: # try to search by card ID
-                sql2 = 'SELECT * FROM cards WHERE card_id = ?'
-                row = cur.execute(sql2, [match]).fetchone()
-                if(row is not None):
-                    results.append(row)
-
-        reply_message = ""
-        if results:
-            card_ids = []
-            for r in results:
-                # don't make dupe replies to same card
-                if r['card_id'] in card_ids:
-                    continue
-                card_ids.append(r['card_id'])
-                cleaned_skill_disc = clean_disc_string(r['skill_disc'])
-                if(r['evo_skill_disc'] and r['evo_skill_disc'] != r['skill_disc']):
-                    cleaned_evo_disc = clean_disc_string(r['evo_skill_disc'])
-                    cleaned_skill_disc += EVO_SKILL_DISC_TEMPLATE_FRAG.format(cleaned_evo_disc)
-
-                r['skill_disc'] = cleaned_skill_disc
-                r['stats'] = str(r['cost']) + 'pp'
-                if(r['char_type'] == 1):
-                    r['stats'] += ' ' + str(r['atk']) + '/' + str(r['life']) + \
-                                    ' -> ' + str(r['evo_atk']) + '/' + str(r['evo_life'])
-
-                r['craft'] = lookup_name_from_id(r['clan'], 'crafts', cur)
-                r['card_rarity'] = lookup_name_from_id(r['rarity'], 'card_rarity', cur)
-                r['card_type'] = lookup_name_from_id(r['char_type'], 'card_types', cur)
-                r['card_set'] = lookup_name_from_id(r['card_set_id'], 'card_sets', cur)
-
-                r['art_links'] = BASE_ART_LINK.format(r['card_id'])
-                if r['card_type'] == 'Follower':
-                    r['art_links'] += EVO_ART_LINK.format(r['card_id'])
-
-                reply_message += CARD_TEMPLATE.format(**r)
-
-        return reply_message
-
-
 def process_reply(post, msg):
     if msg:
-        reply_msg = ''.join([msg, BOT_SIGNATURE_TEMPLATE])
+        reply_msg = ''.join([msg, templates.BOT_SIGNATURE_TEMPLATE])
         print('-----')
         print('post id:', post.id)
         print(reply_msg)
@@ -114,33 +27,33 @@ def process_reply(post, msg):
         post.reply(reply_msg)
 
 def process_comment(comment):
-    matches = re.findall(CARD_INFO_REGEX, comment.body)
+    matches = re.findall(templates.CARD_INFO_REGEX, comment.body)
     if matches :
-        msg = process_card_lookup(matches)
+        msg = card_lookup.process_card_lookup(matches)
         process_reply(comment, msg)
 
-    match = re.search(DECKCODE_REGEX, comment.body)
+    match = re.search(templates.DECKCODE_REGEX, comment.body)
     deckcode = match.group(1)
     if deckcode:
         msg = decklist.process_deckcodes(deckcode)
         process_reply(comment, msg)
 
 def process_submission(submission):
-    matches = re.findall(CARD_INFO_REGEX, submission.selftext)
+    matches = re.findall(templates.CARD_INFO_REGEX, submission.selftext)
     if matches:
-        msg = process_card_lookup(matches)
+        msg = card_lookup.process_card_lookup(matches)
         process_reply(submission, msg)
 
-    match = re.search(DECKCODE_REGEX, comment.body)
+    match = re.search(templates.DECKCODE_REGEX, submission.selftext)
     deckcode = match.group(1)
-    if  deckcode:
+    if deckcode:
         msg = decklist.process_deckcodes(deckcode)
         process_reply(submission, msg)
 
 def process_post(post):
-        if(isinstance(post, praw.models.Submission)):
+        if isinstance(post, praw.models.Submission):
             process_submission(post)
-        elif(isinstance(post, praw.models.Comment)):
+        elif isinstance(post, praw.models.Comment):
             process_comment(post)
 
 def submissions_and_comments(subreddit, **kwargs):
@@ -151,18 +64,18 @@ def submissions_and_comments(subreddit, **kwargs):
     return results
 
 def main():
-    reddit = praw.Reddit('shadowverse-cardbot')
+    reddit = praw.Reddit(settings.SITE_NAME)
 
-    subreddit = reddit.subreddit('ringon')
+    subreddit = reddit.subreddit(settings.SUBREDDITS)
 
     seen_db = load_seen_db()
 
     stream = praw.models.util.stream_generator(lambda **kwargs: submissions_and_comments(subreddit, **kwargs),
                                                 skip_existing=True)
 
-    with open(SEEN_DB, 'a') as f:
+    with open(settings.SEEN_DB, 'a') as f:
         for post in stream:
-            if post.id not in seen_db and post.author.name not in IGNORED_USERS:
+            if post.id not in seen_db and post.author.name not in settings.IGNORED_USERS:
                 process_post(post)
                 f.write(post.id + '\n')
                 f.flush()
