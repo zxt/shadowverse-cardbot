@@ -18,43 +18,24 @@ def load_seen_db():
     return seen_db
 
 def process_reply(post, msg):
-    if msg:
-        reply_msg = ''.join([msg, templates.BOT_SIGNATURE_TEMPLATE])
-        print('-----')
-        print('post id:', post.id)
-        print(reply_msg)
-        print('-----')
-        post.reply(reply_msg)
+    reply_msg = ''.join([msg, templates.BOT_SIGNATURE_TEMPLATE])
+    print(''.join(['-----\n', 'post id:', post.id, '\n', reply_msg, '\n-----']))
+    post.reply(reply_msg)
 
-def process_comment(comment):
-    matches = re.findall(templates.CARD_INFO_REGEX, comment.body)
-    if matches :
-        msg = card_lookup.process_card_lookup(matches)
-        process_reply(comment, msg)
-
-    match = re.search(templates.DECKCODE_REGEX, comment.body)
-    deckcode = match.group(1)
-    if deckcode:
-        msg = decklist.process_deckcodes(deckcode)
-        process_reply(comment, msg)
-
-def process_submission(submission):
-    matches = re.findall(templates.CARD_INFO_REGEX, submission.selftext)
+def process_lookup(regex, post, fn):
+    if isinstance(post, praw.models.Submission):
+        text = post.selftext
+    elif isinstance(post, praw.models.Comment):
+        text = post.body
+    matches = re.findall(regex, text)
     if matches:
-        msg = card_lookup.process_card_lookup(matches)
-        process_reply(submission, msg)
-
-    match = re.search(templates.DECKCODE_REGEX, submission.selftext)
-    deckcode = match.group(1)
-    if deckcode:
-        msg = decklist.process_deckcodes(deckcode)
-        process_reply(submission, msg)
+        reply = fn(matches)
+        if reply:
+            process_reply(post, reply)
 
 def process_post(post):
-        if isinstance(post, praw.models.Submission):
-            process_submission(post)
-        elif isinstance(post, praw.models.Comment):
-            process_comment(post)
+    process_lookup(templates.CARD_INFO_REGEX, post, card_lookup.process_card_lookup)
+    process_lookup(templates.DECKCODE_REGEX, post, decklist.process_deckcodes)
 
 def submissions_and_comments(subreddit, **kwargs):
     results = []

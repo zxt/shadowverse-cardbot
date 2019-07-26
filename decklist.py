@@ -2,8 +2,8 @@
 from collections import Counter
 import svportal.deckcode as svp
 
-def process_deckcodes(deckcode):
-    hsh = svp.get_hash(deckcode)
+def process_deckcodes(deckcodes):
+    hsh = svp.get_hash(deckcodes[0])
     return process_deckhash(hsh)
 
 def process_deckhash(deckhash):
