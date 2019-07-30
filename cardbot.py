@@ -36,6 +36,7 @@ def process_lookup(regex, post, fn):
 def process_post(post):
     process_lookup(templates.CARD_INFO_REGEX, post, card_lookup.process_card_lookup)
     process_lookup(templates.DECKCODE_REGEX, post, decklist.process_deckcodes)
+    process_lookup(templates.SVPORTAL_DECK_REGEX, post, decklist.process_svportal_links)
 
 def submissions_and_comments(subreddit, **kwargs):
     results = []

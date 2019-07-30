@@ -9,6 +9,9 @@ def process_deckcodes(deckcodes):
     except ValueError:
         return
 
+def process_svportal_links(links):
+    process_deckhash(links[0])
+
 def process_deckhash(deckhash):
     try:
         deck = svp.get_deck(deckhash)
