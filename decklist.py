@@ -3,11 +3,17 @@ from collections import Counter
 import svportal.deckcode as svp
 
 def process_deckcodes(deckcodes):
-    hsh = svp.get_hash(deckcodes[0])
-    return process_deckhash(hsh)
+    try:
+        hsh = svp.get_hash(deckcodes[0])
+        return process_deckhash(hsh)
+    except ValueError:
+        return
 
 def process_deckhash(deckhash):
-    deck = svp.get_deck(deckhash)
+    try:
+        deck = svp.get_deck(deckhash)
+    except ValueError:
+        return
 
     decklist_reply = generate_decklist_reply(deck)
 
