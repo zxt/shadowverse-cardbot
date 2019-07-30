@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 import os
 import re
+import time
 
 import praw
+from prawcore import PrawcoreException
 
 import settings
 import templates
@@ -56,13 +58,22 @@ def main():
                                                 skip_existing=True)
 
     with open(settings.SEEN_DB, 'a') as f:
-        for post in stream:
-            if post.id not in seen_db and post.author.name not in settings.IGNORED_USERS:
-                process_post(post)
-                f.write(post.id + '\n')
-                f.flush()
-                os.fsync(f)
-                seen_db.add(post.id)
+        running = True
+        while running:
+            try:
+                for post in stream:
+                    if post.id not in seen_db and post.author.name not in settings.IGNORED_USERS:
+                        process_post(post)
+                        f.write(post.id + '\n')
+                        f.flush()
+                        os.fsync(f)
+                        seen_db.add(post.id)
+            except KeyboardInterrupt:
+                print("Bot manually terminated.")
+                running = False
+            except PrawcoreException as e:
+                print('exception:', e)
+                time.sleep(10)
 
 if __name__ == "__main__":
     main()
