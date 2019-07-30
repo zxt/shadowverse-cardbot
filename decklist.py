@@ -10,7 +10,7 @@ def process_deckcodes(deckcodes):
         return
 
 def process_svportal_links(links):
-    process_deckhash(links[0])
+    return process_deckhash(links[0])
 
 def process_deckhash(deckhash):
     try:
@@ -50,8 +50,8 @@ def generate_decklist_reply(deck):
     crafts = ['', 'Forestcraft', 'Swordcraft', 'Runecraft', 'Dragoncraft',
               'Shadowcraft', 'Bloodcraft', 'Havencraft', 'Portalcraft']
 
-    # 3 is unknown use
-    deck_format = ['', 'Constructed', 'Take Two', '???', 'Open 6']
+    # 3 is prebuilts...but only recent ones starting from set 5
+    deck_format = ['', 'Constructed', 'Take Two', 'Prebuilt', 'Open 6']
 
     if deck['deck_format'] == 1 :
         mode = '(Unlimited)' if any(card['format_type'] == 0 for card in filtered_card_list) \
