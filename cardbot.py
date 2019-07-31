@@ -11,6 +11,7 @@ import templates
 import card_lookup
 import decklist
 
+
 def load_seen_db():
     if not os.path.isfile(settings.SEEN_DB):
         seen_db = set()
@@ -19,10 +20,14 @@ def load_seen_db():
             seen_db = set(f.read().splitlines())
     return seen_db
 
+
 def process_reply(post, msg):
     reply_msg = ''.join([msg, templates.BOT_SIGNATURE_TEMPLATE])
-    print(''.join(['-----\n', 'post id:', post.id, '\n', reply_msg, '\n-----']))
+    print(''.join(['-----\n',
+                   'post id:', post.id, '\n', reply_msg,
+                   '\n-----']))
     post.reply(reply_msg)
+
 
 def process_lookup(regex, post, fn):
     if isinstance(post, praw.models.Submission):
@@ -35,10 +40,15 @@ def process_lookup(regex, post, fn):
         if reply:
             process_reply(post, reply)
 
+
 def process_post(post):
-    process_lookup(templates.CARD_INFO_REGEX, post, card_lookup.process_card_lookup)
-    process_lookup(templates.DECKCODE_REGEX, post, decklist.process_deckcodes)
-    process_lookup(templates.SVPORTAL_DECK_REGEX, post, decklist.process_svportal_links)
+    process_lookup(templates.CARD_INFO_REGEX, post,
+                   card_lookup.process_card_lookup)
+    process_lookup(templates.DECKCODE_REGEX, post,
+                   decklist.process_deckcodes)
+    process_lookup(templates.SVPORTAL_DECK_REGEX, post,
+                   decklist.process_svportal_links)
+
 
 def submissions_and_comments(subreddit, **kwargs):
     results = []
@@ -47,6 +57,7 @@ def submissions_and_comments(subreddit, **kwargs):
     results.sort(key=lambda post: post.created_utc, reverse=True)
     return results
 
+
 def main():
     reddit = praw.Reddit(settings.SITE_NAME)
 
@@ -54,15 +65,18 @@ def main():
 
     seen_db = load_seen_db()
 
-    stream = praw.models.util.stream_generator(lambda **kwargs: submissions_and_comments(subreddit, **kwargs),
-                                                skip_existing=True)
+    s_g = praw.models.util.stream_generator
+    stream = s_g(lambda **kwargs: (
+                    submissions_and_comments(subreddit, **kwargs)
+                    ), skip_existing=True)
 
     with open(settings.SEEN_DB, 'a') as f:
         running = True
         while running:
             try:
                 for post in stream:
-                    if post.id not in seen_db and post.author.name not in settings.IGNORED_USERS:
+                    if (post.id not in seen_db and
+                            post.author.name not in settings.IGNORED_USERS):
                         process_post(post)
                         f.write(post.id + '\n')
                         f.flush()
@@ -74,6 +88,7 @@ def main():
             except PrawcoreException as e:
                 print('exception:', e)
                 time.sleep(10)
+
 
 if __name__ == "__main__":
     main()
