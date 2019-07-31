@@ -1,0 +1,11 @@
+; this is an example praw.ini file
+; these values must be provided and valid to run the bot
+; client id/secret are from registering bot with reddit: https://www.reddit.com/prefs/apps/
+; password/username is the details of the reddit account the bot will use
+; user_agent follow reddit's ua guidelines: https://github.com/reddit-archive/reddit/wiki/API
+[your-bot-name]
+client_id=
+client_secret=
+password=
+username=
+user_agent=
