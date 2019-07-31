@@ -2,7 +2,7 @@ CARD_INFO_REGEX = '\[\[([^]]*)\]\]'
 
 DECKCODE_REGEX = '\!(\w{4}(?!\S)|pd\w{4}(?!\S))'
 
-SVPORTAL_DECK_REGEX = 'https:\/\/shadowverse-portal\.com\/deck\/([^?]+)(?=\?|$)'
+SVPORTAL_DECK_REGEX = 'https:\/\/shadowverse-portal\.com\/deck\/([^?|\s]+)'
 
 BASE_ART_LINK = '^[B](https://shadowverse-portal.com/image/card/phase2/common/C/C_{}.png)'
 EVO_ART_LINK = '|[E](https://shadowverse-portal.com/image/card/phase2/common/E/E_{}.png)'

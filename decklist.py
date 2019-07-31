@@ -2,12 +2,17 @@
 from collections import Counter
 import svportal.deckcode as svp
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 def process_deckcodes(deckcodes):
+    code = deckcodes[0]
     try:
-        hsh = svp.get_hash(deckcodes[0])
+        hsh = svp.get_hash(code)
         return process_deckhash(hsh)
     except ValueError:
+        logger.warning('Deckcode {} has expired or is invalid'.format(code))
         return
 
 
@@ -19,6 +24,7 @@ def process_deckhash(deckhash):
     try:
         deck = svp.get_deck(deckhash)
     except ValueError:
+        logger.warning('Deck hash is invalid: {}'.format(deckhash))
         return
 
     decklist_reply = generate_decklist_reply(deck)

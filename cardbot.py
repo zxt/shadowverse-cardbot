@@ -2,6 +2,7 @@
 import os
 import re
 import time
+import logging
 
 import praw
 from prawcore import PrawcoreException
@@ -10,6 +11,10 @@ import settings
 import templates
 import card_lookup
 import decklist
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s',
+                    level=logging.INFO)
 
 
 def load_seen_db():
@@ -23,9 +28,9 @@ def load_seen_db():
 
 def process_reply(post, msg):
     reply_msg = ''.join([msg, templates.BOT_SIGNATURE_TEMPLATE])
-    print(''.join(['-----\n',
-                   'post id:', post.id, '\n', reply_msg,
-                   '\n-----']))
+    logging.info(''.join(['-----\n',
+                          'post id:', post.id, '\n', reply_msg,
+                          '\n-----']))
     post.reply(reply_msg)
 
 
@@ -83,10 +88,10 @@ def main():
                         os.fsync(f)
                         seen_db.add(post.id)
             except KeyboardInterrupt:
-                print("Bot manually terminated.")
+                logging.info("Bot manually terminated.")
                 running = False
-            except PrawcoreException as e:
-                print('exception:', e)
+            except PrawcoreException:
+                logging.exception('unhandled exception occurred:')
                 time.sleep(10)
 
 
