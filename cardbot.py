@@ -6,6 +6,7 @@ import logging
 
 import praw
 from prawcore import PrawcoreException
+from praw.exceptions import APIException
 
 import settings
 import templates
@@ -92,6 +93,9 @@ def main():
                 running = False
             except PrawcoreException:
                 logging.exception('unhandled exception occurred:')
+                time.sleep(10)
+            except APIException:
+                logging.exception('reddit API exception:')
                 time.sleep(10)
 
 
