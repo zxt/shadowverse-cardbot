@@ -97,8 +97,8 @@ def generate_decklist_reply(deck):
 
 def generate_decklist_table(cards_list, qty):
     decklist_table_header = """
-    Cost|Rarity|Name|Qty|Link
-    :--:|:--:|:--:|:--:|:--:
+Cost|Rarity|Name|Qty|Link
+:--:|:--:|:--:|:--:|:--:
 """
 
     rarity = ['', 'Bronze', 'Silver', 'Gold', 'Legendary']
@@ -120,6 +120,7 @@ def generate_decklist_table(cards_list, qty):
         card_rows.append(cards_str)
 
     card_rows.insert(0, decklist_table_header)
+    card_rows.append('\n')
 
     decklist_table = ''.join(card_rows)
     return decklist_table

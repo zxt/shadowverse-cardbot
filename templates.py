@@ -8,7 +8,7 @@ BASE_ART_LINK = '^[B](https://shadowverse-portal.com/image/card/phase2/common/C/
 EVO_ART_LINK = '|[E](https://shadowverse-portal.com/image/card/phase2/common/E/E_{}.png)'
 
 CARD_TEMPLATE = """\
-- **[{card_name}](https://shadowverse-portal.com/card/{card_id})**{art_links} | {craft} | {card_rarity} {card_type}  
+- [**{card_name}**](https://shadowverse-portal.com/card/{card_id}){art_links} | {craft} | {card_rarity} {card_type}  
   {stats} | Trait: {tribe_name} | Set: {card_set}  
   {skill_disc}
 """
