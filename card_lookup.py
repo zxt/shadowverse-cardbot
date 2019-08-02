@@ -27,14 +27,15 @@ def process_card_lookup(matches):
         sql = 'SELECT * FROM cards WHERE card_name = ? COLLATE NOCASE'
         results = []
         for match in matches:
-            row = cur.execute(sql, [match]).fetchone()
-            if(row is not None):
-                results.append(row)
-            else:  # try to search by card ID
-                sql2 = 'SELECT * FROM cards WHERE card_id = ?'
-                row = cur.execute(sql2, [match]).fetchone()
+            for group in match:  # a 2-tuple, [[group 1]] and \[\[group2\]\]
+                row = cur.execute(sql, [group]).fetchone()
                 if(row is not None):
                     results.append(row)
+                else:  # try to search by card ID
+                    sql2 = 'SELECT * FROM cards WHERE card_id = ?'
+                    row = cur.execute(sql2, [group]).fetchone()
+                    if(row is not None):
+                        results.append(row)
 
         reply_message = ""
         if results:
