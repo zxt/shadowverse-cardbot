@@ -24,11 +24,19 @@ def clean_disc_string(string):
 def process_card_lookup(matches):
     with DBConnect(settings.CARD_DB) as conn:
         cur = conn.cursor()
-        sql = 'SELECT * FROM cards WHERE card_name = ? COLLATE NOCASE'
+        # sql = 'SELECT * FROM cards WHERE card_name = ? COLLATE NOCASE'
+        sql = "SELECT * FROM cards WHERE card_name LIKE '%?%'"
+
         results = []
         for match in matches:
             for group in match:  # a 2-tuple, [[group 1]] and \[\[group2\]\]
-                row = cur.execute(sql, [group]).fetchone()
+                group_words = group.translate(str.maketrans(","," ")).split()
+                new_sql = sql
+                for x in range(0, len(group_words) - 1):
+                    new_sql = new_sql + " AND card_name LIKE '%?%'"
+
+                new_sql = new_sql + " COLLATE NOCASE"
+                row = cur.execute(new_sql, group_words).fetchone()
                 if(row is not None):
                     results.append(row)
                 else:  # try to search by card ID
