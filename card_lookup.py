@@ -30,7 +30,10 @@ def process_card_lookup(matches):
         results = []
         for match in matches:
             for group in match:  # a 2-tuple, [[group 1]] and \[\[group2\]\]
+                if not group:
+                  continue
                 group_words = group.translate(str.maketrans(","," ")).split()
+                group_words = ['%' + w + '%' for w in group_words]
                 new_sql = sql
                 for x in range(0, len(group_words) - 1):
                     new_sql = new_sql + " AND card_name LIKE '%?%'"
