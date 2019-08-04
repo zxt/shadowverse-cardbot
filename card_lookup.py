@@ -38,7 +38,6 @@ def process_card_lookup(matches):
                 for x in range(0, len(group_words) - 1):
                     new_sql = new_sql + " AND card_name LIKE '%?%'"
 
-                new_sql = new_sql + " COLLATE NOCASE"
                 row = cur.execute(new_sql, group_words).fetchone()
                 if(row is not None):
                     results.append(row)
