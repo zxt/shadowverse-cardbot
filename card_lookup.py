@@ -25,7 +25,7 @@ def process_card_lookup(matches):
     with DBConnect(settings.CARD_DB) as conn:
         cur = conn.cursor()
         # sql = 'SELECT * FROM cards WHERE card_name = ? COLLATE NOCASE'
-        sql = "SELECT * FROM cards WHERE card_name LIKE '%?%'"
+        sql = "SELECT * FROM cards WHERE card_name LIKE ?"
 
         results = []
         for match in matches:
