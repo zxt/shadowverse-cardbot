@@ -36,7 +36,7 @@ def process_card_lookup(matches):
                 group_words = ['%' + w + '%' for w in group_words]
                 new_sql = sql
                 for x in range(0, len(group_words) - 1):
-                    new_sql = new_sql + " AND card_name LIKE '%?%'"
+                    new_sql = new_sql + " AND card_name LIKE ?"
 
                 row = cur.execute(new_sql, group_words).fetchone()
                 if(row is not None):
