@@ -63,10 +63,12 @@ def generate_decklist_reply(deck):
     crafts = ['', 'Forestcraft', 'Swordcraft', 'Runecraft', 'Dragoncraft',
               'Shadowcraft', 'Bloodcraft', 'Havencraft', 'Portalcraft']
 
-    # 3 is prebuilts...but only recent ones starting from set 5
-    deck_format = ['', 'Constructed', 'Take Two', 'Prebuilt', 'Open 6']
+    # 3 seems to be prebuilts...but only recent ones starting from set 5
+    # except some non-prebuilt decks also use 3, so purpose unclear
+    # just treat it same as 1 unless a difference is found
+    deck_format = ['', 'Constructed', 'Take Two', 'Constructed', 'Open 6']
 
-    if deck['deck_format'] == 1:
+    if deck['deck_format'] in (1, 3):
         mode = '(Unlimited)' if (any(card['format_type'] == 0
                                  for card in filtered_card_list)) \
                          else '(Rotation)'
