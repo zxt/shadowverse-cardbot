@@ -24,18 +24,38 @@ def clean_disc_string(string):
 def process_card_lookup(matches):
     with DBConnect(settings.CARD_DB) as conn:
         cur = conn.cursor()
-        sql = 'SELECT * FROM cards WHERE card_name = ? COLLATE NOCASE'
+        # sql = 'SELECT * FROM cards WHERE card_name = ? COLLATE NOCASE'
+        sql = "SELECT * FROM cards WHERE card_name LIKE ?"
+
         results = []
         for match in matches:
             for group in match:  # a 2-tuple, [[group 1]] and \[\[group2\]\]
-                row = cur.execute(sql, [group]).fetchone()
+                if not group:
+                  continue
+
+                # try to search exact matches
+                exact_sql = 'SELECT * FROM cards WHERE card_name = ? COLLATE NOCASE'
+                row = cur.execute(exact_sql, [group]).fetchone()
                 if(row is not None):
                     results.append(row)
-                else:  # try to search by card ID
-                    sql2 = 'SELECT * FROM cards WHERE card_id = ?'
-                    row = cur.execute(sql2, [group]).fetchone()
+
+                else: # try to search non-exact matches
+                    group_words = group.translate(str.maketrans(","," ")).split()
+                    group_words = ['%' + w + '%' for w in group_words]
+
+                    non_exact_sql = sql
+                    for x in range(0, len(group_words) - 1):
+                        non_exact_sql = non_exact_sql + " AND card_name LIKE ?"
+
+                    row = cur.execute(non_exact_sql, group_words).fetchone()
                     if(row is not None):
                         results.append(row)
+
+                    else:  # try to search by card ID
+                        sql2 = 'SELECT * FROM cards WHERE card_id = ?'
+                        row = cur.execute(sql2, [group]).fetchone()
+                        if(row is not None):
+                            results.append(row)
 
         reply_message = ""
         if results:

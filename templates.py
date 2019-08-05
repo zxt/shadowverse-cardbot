@@ -1,4 +1,6 @@
-CARD_INFO_REGEX = r'\[\[([^]]*)\]\]|\\\[\\\[([^]]*)\\\]\\\]'
+CARD_INFO_REGEX = r'\[\[(.*)\]\]|\\\[\\\[(.*)\\\]\\\]'
+
+# CARD_INFO_WITH_LORE_REGEX = r'\{\{(.*)\}\}|\\\{\\\{(.*)\\\}\\\}'
 
 DECKCODE_REGEX = r'\!(\w{4}(?!\S)|pd\w{4}(?!\S))'
 
@@ -12,6 +14,14 @@ CARD_TEMPLATE = """\
   {stats} | Trait: {tribe_name} | Set: {card_set}  
   {skill_disc}
 """
+
+# CARD_TEMPLATE_WITH_LORE = """\
+# - [**{card_name}**](https://shadowverse-portal.com/card/{card_id}){art_links} | {craft} | {card_rarity} {card_type}  
+#   {stats} | Trait: {tribe_name} | Set: {card_set}  
+#   {skill_disc}  
+#   *{card_lore}*  
+#   *{card_lore_evo}*
+# """
 
 EVO_SKILL_DISC_TEMPLATE_FRAG ="""\
   
