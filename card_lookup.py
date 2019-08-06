@@ -49,6 +49,8 @@ def process_card_lookup(matches):
                     for x in range(0, len(group_words) - 1):
                         non_exact_sql = non_exact_sql + " AND card_name LIKE ?"
 
+                    non_exact_sql = non_exact_sql + " ORDER BY card_set_id DESC" # prioritize newer sets
+
                     if not group_words:
                         continue
                     row = cur.execute(non_exact_sql, group_words).fetchone()
