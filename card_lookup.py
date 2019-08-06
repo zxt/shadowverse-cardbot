@@ -42,7 +42,7 @@ def process_card_lookup(matches):
                     results.append(row)
 
                 else: # try to search non-exact matches
-                    group_words = group.translate(str.maketrans(","," ")).split()
+                    group_words = re.sub(r'[^\w\s]',' ',group).split()
                     group_words = ['%' + w + '%' for w in group_words]
 
                     non_exact_sql = sql
