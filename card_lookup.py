@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import re
+import logging
 
 import settings
 import templates
@@ -23,6 +24,7 @@ def clean_disc_string(string):
 
 def process_card_lookup(matches):
     with DBConnect(settings.CARD_DB) as conn:
+        conn.set_trace_callback(logging.info)
         cur = conn.cursor()
         # sql = 'SELECT * FROM cards WHERE card_name = ? COLLATE NOCASE'
         sql = "SELECT * FROM cards WHERE card_name LIKE ?"
@@ -47,6 +49,8 @@ def process_card_lookup(matches):
                     for x in range(0, len(group_words) - 1):
                         non_exact_sql = non_exact_sql + " AND card_name LIKE ?"
 
+                    if not group_words:
+                        continue
                     row = cur.execute(non_exact_sql, group_words).fetchone()
                     if(row is not None):
                         results.append(row)
