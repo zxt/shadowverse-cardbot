@@ -50,7 +50,7 @@ def process_card_lookup(matches):
                         non_exact_sql = non_exact_sql + " AND card_name LIKE ?"
 
                     # prioritize newer sets but don't prioritize tokens
-                    non_exact_sql = non_exact_sql + " ORDER BY CASE when card_set_id = 90000 THEN 2 ELSE 1 END, card_set_id DESC" 
+                    non_exact_sql = non_exact_sql + " ORDER BY CASE WHEN card_set_id = 90000 THEN 2 WHEN card_set_id > 70000 THEN 3 ELSE 1 END, card_set_id DESC" 
 
                     if not group_words:
                         continue
