@@ -56,8 +56,7 @@ def generate_decklist_reply(deck):
     card_qty = Counter()
     vials = 0
     for card in filtered_card_list:
-        name = card['card_name']
-        card_qty[name] += 1
+        card_qty[card['card_id']] += 1
         vials += card['use_red_ether']
 
     crafts = ['', 'Forestcraft', 'Swordcraft', 'Runecraft', 'Dragoncraft',
@@ -91,6 +90,7 @@ def generate_decklist_reply(deck):
     # filtering destroys the card list ordering,
     # so we sort them back in ascending cost
     sorted_card_list = sorted(unique_card_list, key=lambda k: k['cost'])
+
     decklist_table = generate_decklist_table(sorted_card_list, card_qty)
 
     decklist_reply = ' '.join([reply_header, decklist_table])
@@ -116,7 +116,7 @@ Cost|Rarity|Name|Qty|Link
         cards_str = '|'.join([str(card['cost']),
                               rarity[card['rarity']],
                               card_name_img,
-                              str(qty[card['card_name']]),
+                              str(qty[card['card_id']]),
                               svp_link.format(card['card_id']),
                               ])
         card_rows.append(cards_str)
