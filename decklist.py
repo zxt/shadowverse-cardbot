@@ -89,7 +89,8 @@ def generate_decklist_reply(deck):
                         for d in filtered_card_list}]
     # filtering destroys the card list ordering,
     # so we sort them back in ascending cost
-    sorted_card_list = sorted(unique_card_list, key=lambda k: k['cost'])
+    sorted_card_list = sorted(unique_card_list,
+                              key=lambda k: (k['cost'], k['card_id']))
 
     decklist_table = generate_decklist_table(sorted_card_list, card_qty)
 
