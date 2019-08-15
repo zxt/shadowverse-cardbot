@@ -22,6 +22,7 @@ def process_svportal_links(links):
 
 def process_deckhash(deckhash):
     try:
+        deckhash = deckhash.replace(r'\_', '_')
         deck = svp.get_deck(deckhash)
     except ValueError:
         logger.warning('Deck hash is invalid: {}'.format(deckhash))
