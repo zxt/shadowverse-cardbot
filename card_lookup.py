@@ -21,13 +21,35 @@ def clean_disc_string(string):
                             cleaned_string)
     return cleaned_string
 
+def process_nonexact_match(input_group, current_cursor):
+    non_exact_sql = "SELECT * FROM cards WHERE card_name LIKE ?"
+
+    group_words = re.sub(r'[^\w\s]',' ',input_group).split()
+    if len(group_words) == 1: # potentially first-word match
+        group_words = [w + '%' for w in group_words]
+    else:
+        group_words = ['%' + w + '%' for w in group_words]
+        for x in range(0, len(group_words) - 1):
+            non_exact_sql = non_exact_sql + " AND card_name LIKE ?"
+
+    # prioritize newer sets but don't prioritize tokens
+    non_exact_sql = non_exact_sql + " ORDER BY CASE WHEN card_set_id > 70000 THEN 2 ELSE 1 END, card_set_id DESC" 
+
+    if group_words:
+        row = current_cursor.execute(non_exact_sql, group_words).fetchone()
+        if len(group_words) == 1 and row is None:
+            group_words = ['%' + w for w in group_words]
+            row = current_cursor.execute(non_exact_sql, group_words).fetchone()
+
+        return row
+    else:
+        return "Error"
+
 
 def process_card_lookup(matches):
     with DBConnect(settings.CARD_DB) as conn:
         conn.set_trace_callback(logging.info)
         cur = conn.cursor()
-        # sql = 'SELECT * FROM cards WHERE card_name = ? COLLATE NOCASE'
-        sql = "SELECT * FROM cards WHERE card_name LIKE ?"
 
         results = []
         for match in matches:
@@ -41,26 +63,16 @@ def process_card_lookup(matches):
                 if(row is not None):
                     results.append(row)
 
-                else: # try to search non-exact matches
-                    group_words = re.sub(r'[^\w\s]',' ',group).split()
-                    group_words = ['%' + w + '%' for w in group_words]
-
-                    non_exact_sql = sql
-                    for x in range(0, len(group_words) - 1):
-                        non_exact_sql = non_exact_sql + " AND card_name LIKE ?"
-
-                    # prioritize newer sets but don't prioritize tokens
-                    non_exact_sql = non_exact_sql + " ORDER BY CASE WHEN card_set_id > 70000 THEN 2 ELSE 1 END, card_set_id DESC" 
-
-                    if not group_words:
+                else: # try to search for non-exact matches
+                    row = process_nonexact_match(group, cur)
+                    if row == "Error":
                         continue
-                    row = cur.execute(non_exact_sql, group_words).fetchone()
                     if(row is not None):
                         results.append(row)
 
                     else:  # try to search by card ID
-                        sql2 = 'SELECT * FROM cards WHERE card_id = ?'
-                        row = cur.execute(sql2, [group]).fetchone()
+                        id_sql = 'SELECT * FROM cards WHERE card_id = ?'
+                        row = cur.execute(id_sql, [group]).fetchone()
                         if(row is not None):
                             results.append(row)
 
