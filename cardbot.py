@@ -64,6 +64,14 @@ def submissions_and_comments(subreddit, **kwargs):
     return results
 
 
+def stream(subreddit):
+    s_g = praw.models.util.stream_generator
+    stream = s_g(lambda **kwargs: (
+                    submissions_and_comments(subreddit, **kwargs)
+                    ), skip_existing=True)
+    return stream
+
+
 def main():
     reddit = praw.Reddit(settings.SITE_NAME)
 
@@ -71,16 +79,11 @@ def main():
 
     seen_db = load_seen_db()
 
-    s_g = praw.models.util.stream_generator
-    stream = s_g(lambda **kwargs: (
-                    submissions_and_comments(subreddit, **kwargs)
-                    ), skip_existing=True)
-
     with open(settings.SEEN_DB, 'a') as f:
         running = True
         while running:
             try:
-                for post in stream:
+                for post in stream(subreddit):
                     if (post.id not in seen_db and
                             post.author.name not in settings.IGNORED_USERS):
                         process_post(post)
