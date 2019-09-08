@@ -29,9 +29,7 @@ def load_seen_db():
 
 def process_reply(post, msg):
     reply_msg = ''.join([msg, templates.BOT_SIGNATURE_TEMPLATE])
-    logging.info(''.join(['-----\n',
-                          'post id:', post.id, '\n', reply_msg,
-                          '\n-----']))
+    logging.info('\n' + reply_msg)
     post.reply(reply_msg)
 
 
@@ -42,6 +40,8 @@ def process_lookup(regex, post, fn):
         text = post.body
     matches = re.findall(regex, text)
     if matches:
+        logging.info('----------')
+        logging.info('post id: %s', post.id)
         reply = fn(matches)
         if reply:
             process_reply(post, reply)
@@ -83,6 +83,7 @@ def main():
         running = True
         while running:
             try:
+                logging.info('starting subreddit stream')
                 for post in stream(subreddit):
                     if (post.id not in seen_db and
                             post.author.name not in settings.IGNORED_USERS):
@@ -91,6 +92,7 @@ def main():
                         f.flush()
                         os.fsync(f)
                         seen_db.add(post.id)
+                logging.info('subreddit stream stopped')
             except KeyboardInterrupt:
                 logging.info("Bot manually terminated.")
                 running = False
