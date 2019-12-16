@@ -7,6 +7,8 @@ logger = logging.getLogger(__name__)
 
 
 def process_deckcodes(deckcodes):
+    if(len(deckcodes) > 1):
+        return
     code = deckcodes[0]
     try:
         hsh = svp.get_hash(code)
@@ -17,6 +19,8 @@ def process_deckcodes(deckcodes):
 
 
 def process_svportal_links(links):
+    if(len(links) > 1):
+        return
     return process_deckhash(links[0])
 
 

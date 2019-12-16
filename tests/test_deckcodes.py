@@ -15,4 +15,6 @@ def test_valid_deckcodes(caplog):
     process_deckcodes(["pd0601"])
     process_deckcodes(["pd0702"])
     process_deckcodes(["pd0805"])
+    process_deckcodes(["pd0804", "pd0605"])
+    process_deckcodes(["pd0302", "pd0404", "pd0103"])
     assert "invalid" not in caplog.text
