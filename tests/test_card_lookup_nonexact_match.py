@@ -45,7 +45,6 @@ def test_nonexact_match_found_partial_string(db_cursor):
 
 def test_nonexact_match_not_found(db_cursor):
     test_inputs = ["kell",
-                   "elena",
                    "abcd",
                    "foo bar",
                    "%xxx%"
