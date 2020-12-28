@@ -25,3 +25,10 @@ def test_exact_match_not_found(db_cursor):
                    ]
     for i in test_inputs:
         assert process_exact_match(i, db_cursor) is None
+
+
+# for cards reprinted into newer sets,
+# the bot returns card from original released set
+def test_exact_match_card_reprint(db_cursor):
+    result = process_exact_match("summit temple", db_cursor)
+    assert result["card_set_id"] == 10007  # == chronogenesis

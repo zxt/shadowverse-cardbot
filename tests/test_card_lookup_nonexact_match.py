@@ -14,6 +14,9 @@ def test_nonexact_match_found_first_word(db_cursor):
     result = process_nonexact_match("XXI.", db_cursor)
     assert result["card_name"] == "XXI. Zelgenea, The World"
 
+    result = process_nonexact_match("Io", db_cursor)
+    assert result["card_name"] == "Io, Journeymage"
+
 
 def test_nonexact_match_found_multiword(db_cursor):
     result = process_nonexact_match("elana prayer", db_cursor)
