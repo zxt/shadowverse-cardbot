@@ -85,7 +85,7 @@ def main():
             try:
                 logging.info('starting subreddit stream')
                 for post in stream(subreddit):
-                    if (post.id not in seen_db and
+                    if (post.id not in seen_db and post.author and
                             post.author.name not in settings.IGNORED_USERS):
                         process_post(post)
                         f.write(post.id + '\n')
