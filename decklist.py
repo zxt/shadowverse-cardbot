@@ -70,7 +70,10 @@ def generate_decklist_reply(deck):
     # 3 seems to be prebuilts...but only recent ones starting from set 5
     # except some non-prebuilt decks also use 3, so purpose unclear
     # just treat it same as 1 unless a difference is found
-    deck_format = ['', 'Constructed', 'Take Two', 'Constructed', 'Open 6']
+    #
+    # Unclear what format 5 is, as Cross Craft is 6 and the next mode added
+    deck_format = ['', 'Constructed', 'Take Two', 'Constructed', 'Open 6',
+                   '', 'Cross Craft']
 
     if deck['deck_format'] in (1, 3):
         mode = '(Unlimited)' if (any(card['format_type'] == 0
@@ -79,8 +82,11 @@ def generate_decklist_reply(deck):
     else:
         mode = ''
 
+    deck_class = crafts[deck['clan']] + ('/' + crafts[deck['sub_clan']]
+                                         if deck['deck_format'] == 6 else '')
+
     reply_header = ' | '.join([
-                            ' '.join(['**Class**:', crafts[deck['clan']]]),
+                            ' '.join(['**Class**:', deck_class]),
                             ' '.join(['**Format**:',
                                       deck_format[deck['deck_format']],
                                       mode]),
@@ -100,6 +106,7 @@ def generate_decklist_reply(deck):
     decklist_table = generate_decklist_table(sorted_card_list, card_qty)
 
     decklist_reply = ' '.join([reply_header, decklist_table])
+
     return decklist_reply
 
 

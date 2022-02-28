@@ -54,6 +54,8 @@ def process_post(post):
                    decklist.process_deckcodes)
     process_lookup(templates.SVPORTAL_DECK_REGEX, post,
                    decklist.process_svportal_links)
+    process_lookup(templates.SVPORTAL_DECK_CO_REGEX, post,
+                   decklist.process_svportal_links)
 
 
 def submissions_and_comments(subreddit, **kwargs):

@@ -3,6 +3,8 @@ CARD_INFO_REGEX = r'\[\[([^]]+)\]\]|\\\[\\\[([^]]+)\\\]\\\]'
 DECKCODE_REGEX = r'\!(\w{4}(?!\S)|pd\w{4}(?!\S))'
 
 SVPORTAL_DECK_REGEX = r'https://shadowverse-portal\.com/deck/([^?\)\]\s]+)'
+# cross craft
+SVPORTAL_DECK_CO_REGEX = r'https://shadowverse-portal\.com/deck_co/([^?\)\]\s]+)'
 
 BASE_ART_LINK = '^[B](https://shadowverse-portal.com/image/card/phase2/common/C/C_{}.png)'
 EVO_ART_LINK = '|[E](https://shadowverse-portal.com/image/card/phase2/common/E/E_{}.png)'
