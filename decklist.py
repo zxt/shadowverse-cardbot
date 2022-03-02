@@ -34,9 +34,11 @@ def process_deckhash(deckhash):
 
     decklist_reply = generate_decklist_reply(deck)
 
+    deck_path = '/deck_co/' if deck['deck_format'] == 6 else '/deck/'
+
     decklist_reply = ''.join([decklist_reply,
                               '[**View this deck in SV-Portal**]',
-                              '(https://shadowverse-portal.com/deck/',
+                              '(https://shadowverse-portal.com' + deck_path,
                               '{})'.format(deckhash)])
 
     return decklist_reply

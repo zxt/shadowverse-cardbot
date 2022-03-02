@@ -12,6 +12,7 @@ def test_svportal_link_hash_valid():
     assert "Forestcraft" in output
     assert "Constructed (Rotation)" in output
     assert "View this deck in SV-Portal" in output
+    assert "/deck/" in output
 
 
 def test_svportal_crosscraft_link_hash_valid():
@@ -25,3 +26,4 @@ def test_svportal_crosscraft_link_hash_valid():
     assert "Bloodcraft/Havencraft" in output
     assert "Cross Craft" in output
     assert "View this deck in SV-Portal" in output
+    assert "/deck_co/" in output
