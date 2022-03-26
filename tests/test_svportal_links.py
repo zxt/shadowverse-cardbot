@@ -10,7 +10,7 @@ def test_svportal_link_hash_valid():
 
     output = decklist.process_svportal_links(link)
     assert "Forestcraft" in output
-    assert "Constructed (Rotation)" in output
+    assert "Constructed (Unlimited)" in output
     assert "View this deck in SV-Portal" in output
     assert "/deck/" in output
 
