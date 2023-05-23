@@ -9,7 +9,7 @@ pluggy==1.0.0
 praw==7.7.0
 prawcore==2.3.0
 pytest==7.2.1
-requests==2.28.2
+requests==2.31.0
 svportal==27.5
 tomli==2.0.1
 update-checker==0.18.0
