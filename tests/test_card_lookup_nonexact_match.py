@@ -26,7 +26,7 @@ def test_nonexact_match_found_multiword(db_cursor):
     assert result["card_name"] == "Orchis, Puppet Girl"
 
     result = process_nonexact_match("hades cerberus", db_cursor)
-    assert result["card_name"] == "Cerberus, Hound of Hades"
+    assert result["card_name"] == "Cerberus, Howl of Hades"
 
     result = process_nonexact_match("vi. the lovers", db_cursor)
     assert result["card_name"] == "VI. Milteo, The Lovers"
